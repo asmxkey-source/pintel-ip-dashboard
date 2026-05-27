@@ -2889,39 +2889,44 @@ function downloadAnnuityPdf(){
   w.document.close();
   setTimeout(function(){ w.focus(); w.print(); }, 500);
 }
+const _FB_URL = 'https://pintel-ip-default-rtdb.asia-southeast1.firebasedatabase.app';
+const _FB_PATH = '/mail_status';
 const _MAIL_STATUS_KEY = 'pintel.mail.status.v1';
+function _safeKey(mid){ return (mid||'').replace(/[^A-Za-z0-9]/g,'_'); }
 function _getMailStatusMap(){
   try{ return JSON.parse(localStorage.getItem(_MAIL_STATUS_KEY) || '{}'); }
   catch(e){ return {}; }
 }
-function _setMailStatusMap(m){
-  localStorage.setItem(_MAIL_STATUS_KEY, JSON.stringify(m));
-}
+function _setMailStatusMap(m){ localStorage.setItem(_MAIL_STATUS_KEY, JSON.stringify(m)); }
 function saveMailStatus(sel){
   const mid = sel.dataset.msgid;
   const val = sel.value;
-  const def = sel.dataset.default;
-  const m = _getMailStatusMap();
-  // 사용자 변경이 CSV 기본값과 같으면 저장에서 제거(저장소 정리)
-  if(val === def){ delete m[mid]; } else { m[mid] = val; }
-  _setMailStatusMap(m);
-  // 셀 배경색으로 시각화
   _applyMailStatusStyle(sel);
+  // 1) localStorage 폴백 저장
+  const m = _getMailStatusMap(); m[mid] = val; _setMailStatusMap(m);
+  // 2) Firebase 저장(전사 공유)
+  fetch(_FB_URL + _FB_PATH + '/' + _safeKey(mid) + '.json', {
+    method:'PUT', body: JSON.stringify(val)
+  }).catch(e => console.warn('Firebase 저장 실패(로컬만 반영):', e));
 }
 function _applyMailStatusStyle(sel){
   const v = sel.value;
-  let bg = '#fef3c7', fg = '#b45309'; // 미처리 = warn
+  let bg = '#fef3c7', fg = '#b45309';
   if(v === '완료'){ bg = '#dcfce7'; fg = '#15803d'; }
   else if(v === '검토중'){ bg = '#dbeafe'; fg = '#1d4ed8'; }
-  sel.style.background = bg;
-  sel.style.color = fg;
-  sel.style.fontWeight = '600';
+  sel.style.background = bg; sel.style.color = fg; sel.style.fontWeight = '600';
 }
-function _restoreMailStatuses(){
-  const m = _getMailStatusMap();
+async function _restoreMailStatuses(){
+  let fb = {};
+  try{
+    const r = await fetch(_FB_URL + _FB_PATH + '.json');
+    fb = (await r.json()) || {};
+  }catch(e){ console.warn('Firebase 읽기 실패(로컬 사용):', e); }
+  const local = _getMailStatusMap();
   document.querySelectorAll('.mail-status').forEach(sel => {
-    const saved = m[sel.dataset.msgid];
-    sel.value = saved || sel.dataset.default;
+    const mid = sel.dataset.msgid;
+    const saved = fb[_safeKey(mid)] || local[mid] || sel.dataset.default;
+    sel.value = saved;
     _applyMailStatusStyle(sel);
   });
 }
