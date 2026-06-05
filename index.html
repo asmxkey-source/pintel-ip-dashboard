@@ -1,45 +1,93 @@
 <!doctype html><html lang='ko'><meta charset='utf-8'><title>핀텔 지재권 대시보드</title><script src='https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js'></script><style>
-    *{box-sizing:border-box}body{font-family:'맑은 고딕','Malgun Gothic',Arial,sans-serif;margin:0;background:#f1f5f9;color:#0f172a}
-    .wrap{max-width:1280px;margin:0 auto;padding:24px}
-    /* ── 탭 네비게이션 ── */
-    .tabs{display:flex;gap:4px;background:#fff;border-radius:12px;padding:6px;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow-x:auto}
-    .tab{padding:10px 18px;border:none;background:transparent;border-radius:8px;font-size:14px;font-weight:600;color:#64748b;cursor:pointer;white-space:nowrap;transition:all .15s}
-    .tab:hover{background:#f1f5f9;color:#0f172a}
-    .tab.active{background:#0f766e;color:#fff}
+    /* ── Apple-inspired design tokens ──
+       Action Blue #0066cc · Ink #1d1d1f · Parchment #f5f5f7
+       Single accent color. Flat surfaces. Hairline borders. No shadows on UI. */
+    :root{
+      --primary:#0066cc; --primary-focus:#0071e3; --primary-on-dark:#2997ff;
+      --ink:#1d1d1f; --ink-muted:#6e6e73; --ink-muted-48:#7a7a7a;
+      --canvas:#ffffff; --parchment:#f5f5f7; --pearl:#fafafc;
+      --hairline:#e0e0e0; --divider:#f0f0f0;
+      --tile-dark:#272729; --on-dark:#ffffff;
+    }
+    *{box-sizing:border-box}
+    body{font-family:'SF Pro Text',system-ui,-apple-system,BlinkMacSystemFont,'맑은 고딕','Malgun Gothic',Arial,sans-serif;
+         margin:0;background:var(--parchment);color:var(--ink);
+         font-size:17px;line-height:1.47;letter-spacing:-0.022em;
+         -webkit-font-smoothing:antialiased}
+    .wrap{max-width:1280px;margin:0 auto;padding:32px 24px}
+    h1{font-family:'SF Pro Display',system-ui,-apple-system,sans-serif;
+       font-size:40px;font-weight:600;letter-spacing:-0.022em;line-height:1.1;margin:0 0 6px}
+    h2{font-family:'SF Pro Display',system-ui,-apple-system,sans-serif;
+       font-size:24px;font-weight:600;letter-spacing:-0.019em;line-height:1.2;margin:0 0 14px}
+    .sub{color:var(--ink-muted);font-size:14px;letter-spacing:-0.016em;margin-bottom:28px}
+    a{color:var(--primary);text-decoration:none}
+    a:hover{text-decoration:underline}
+
+    /* ── 탭 네비게이션 ── 미니멀 pill */
+    .tabs{display:flex;gap:2px;background:rgba(255,255,255,0.72);backdrop-filter:saturate(180%) blur(20px);
+          -webkit-backdrop-filter:saturate(180%) blur(20px);
+          border:1px solid var(--divider);border-radius:14px;padding:4px;margin-bottom:24px;
+          overflow-x:auto;position:sticky;top:12px;z-index:100}
+    .tab{padding:9px 20px;border:none;background:transparent;border-radius:10px;
+         font-family:inherit;font-size:14px;font-weight:500;color:var(--ink-muted);
+         letter-spacing:-0.016em;cursor:pointer;white-space:nowrap;transition:all .2s}
+    .tab:hover{color:var(--ink)}
+    .tab.active{background:var(--ink);color:#fff}
+    .tab:active{transform:scale(0.95)}
     .tab-content{display:none}
     .tab-content.active{display:block}
-    /* KPI 카드 — 클릭 가능. 5개(자산) / 2개(운영) 그리드 */
-    .kpi-cards{display:grid;gap:12px;margin-bottom:20px}
+
+    /* ── KPI 카드 ── 그림자 없음, hairline 만, rounded-lg */
+    .kpi-cards{display:grid;gap:16px;margin-bottom:24px}
     .kpi-cards.k5{grid-template-columns:repeat(5,1fr)}
     .kpi-cards.k2{grid-template-columns:repeat(2,1fr)}
-    .kpi-card{background:#fff;border-radius:12px;padding:18px 20px;box-shadow:0 1px 3px rgba(0,0,0,.06);cursor:pointer;transition:transform .12s,box-shadow .12s;border:2px solid transparent}
-    .kpi-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.1);border-color:#0f766e}
-    .kpi-card .label{font-size:13px;color:#475569;font-weight:600;display:flex;justify-content:space-between;align-items:center}
-    .kpi-card .label .arrow{color:#94a3b8;font-size:14px}
-    .kpi-card .big{font-size:38px;font-weight:700;color:#0f172a;line-height:1.1;margin:10px 0 8px}
-    .kpi-card .big .unit{font-size:18px;color:#94a3b8;font-weight:500;margin-left:4px}
-    .kpi-card .sub{font-size:12px;color:#64748b;line-height:1.5}
-    .kpi-card.alert .big{color:#dc2626}
-    .kpi-card.info .big{color:#1d4ed8}
-    h1{font-size:22px;margin:0 0 4px}.sub{color:#64748b;font-size:13px;margin-bottom:20px}
-    .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
-    .card{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;flex-direction:column;justify-content:space-between;min-height:118px}
-    .card .l{font-size:13px;color:#475569;font-weight:600}
-    .card .n{font-size:34px;font-weight:700;color:#0f172a;line-height:1;margin:8px 0 6px}
-    .card .n .unit{font-size:15px;font-weight:600;color:#64748b;margin-left:3px}
-    .card.total .n .unit{color:#cbd5e1}
-    .card .sl{font-size:11px;color:#94a3b8;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .kpi-card{background:var(--canvas);border:1px solid var(--hairline);
+              border-radius:18px;padding:24px;cursor:pointer;
+              transition:transform .15s,border-color .15s}
+    .kpi-card:hover{border-color:var(--ink);transform:translateY(-1px)}
+    .kpi-card:active{transform:scale(0.98)}
+    .kpi-card .label{font-size:14px;color:var(--ink-muted);font-weight:500;letter-spacing:-0.016em;
+                     display:flex;justify-content:space-between;align-items:center}
+    .kpi-card .label .arrow{color:var(--ink-muted-48);font-size:18px;font-weight:300}
+    .kpi-card .big{font-family:'SF Pro Display',system-ui,-apple-system,sans-serif;
+                   font-size:40px;font-weight:600;color:var(--ink);
+                   line-height:1.07;margin:12px 0 8px;letter-spacing:-0.022em}
+    .kpi-card .big .unit{font-size:17px;color:var(--ink-muted);font-weight:400;margin-left:6px}
+    .kpi-card .sub{font-size:13px;color:var(--ink-muted);line-height:1.4;letter-spacing:-0.014em;margin-bottom:0}
+    .kpi-card.alert .big{color:#bf4800}
+    .kpi-card.info .big{color:var(--primary)}
+    /* 분석·기타의 한눈에 카드 (5개 묶음) */
+    .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:20px}
+    .card{background:var(--canvas);border:1px solid var(--hairline);border-radius:18px;padding:20px;
+          display:flex;flex-direction:column;justify-content:space-between;min-height:130px}
+    .card .l{font-size:14px;color:var(--ink-muted);font-weight:500;letter-spacing:-0.016em}
+    .card .n{font-family:'SF Pro Display',system-ui,-apple-system,sans-serif;
+             font-size:36px;font-weight:600;color:var(--ink);line-height:1.07;margin:10px 0 6px;letter-spacing:-0.022em}
+    .card .n .unit{font-size:17px;font-weight:400;color:var(--ink-muted);margin-left:4px}
+    .card .sl{font-size:13px;color:var(--ink-muted);line-height:1.4;letter-spacing:-0.014em;
+              white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .card .sl.wrap{white-space:normal}
-    .card.total{background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff}
-    .card.total .l{color:#cbd5e1}.card.total .n{color:#fff}.card.total .sl{color:#94a3b8}
-    .sec{background:#fff;border-radius:12px;padding:18px 20px;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-    .sec h2{font-size:15px;margin:0 0 14px;display:flex;align-items:center;gap:8px}
-    .sec h2 .badge{background:#e2e8f0;color:#475569;font-size:11px;padding:2px 8px;border-radius:99px;font-weight:600}
-    table{width:100%;border-collapse:collapse;font-size:12.5px}
-    th,td{padding:7px 9px;text-align:left;border-bottom:1px solid #e2e8f0}
-    th{background:#f8fafc;color:#475569;font-weight:600;position:sticky;top:0}
-    tr:hover td{background:#f8fafc}
-    .pill{display:inline-block;padding:1px 8px;border-radius:99px;font-size:11px;font-weight:600;white-space:nowrap}
+    .card.total{background:var(--ink);color:var(--on-dark);border-color:var(--ink)}
+    .card.total .l{color:#a1a1a6}.card.total .n{color:#fff}
+    .card.total .n .unit{color:#a1a1a6}.card.total .sl{color:#a1a1a6}
+
+    /* 섹션 */
+    .sec{background:var(--canvas);border:1px solid var(--hairline);border-radius:18px;
+         padding:28px 28px;margin-bottom:20px}
+    .sec h2{font-family:'SF Pro Display',system-ui,-apple-system,sans-serif;
+            font-size:22px;font-weight:600;margin:0 0 18px;display:flex;align-items:center;gap:10px;
+            letter-spacing:-0.019em}
+    .sec h2 .badge{background:var(--parchment);color:var(--ink-muted);font-size:12px;
+                   padding:4px 12px;border-radius:9999px;font-weight:500;letter-spacing:-0.014em}
+
+    /* 테이블 */
+    table{width:100%;border-collapse:collapse;font-size:14px;letter-spacing:-0.014em}
+    th,td{padding:12px 10px;text-align:left;border-bottom:1px solid var(--divider)}
+    th{background:transparent;color:var(--ink-muted);font-weight:500;position:sticky;top:0;
+       font-size:12px;letter-spacing:0.02em;text-transform:uppercase}
+    tr:hover td{background:var(--parchment)}
+    .pill{display:inline-block;padding:3px 10px;border-radius:9999px;font-size:12px;font-weight:500;
+          white-space:nowrap;letter-spacing:-0.012em}
     th.nowrap, td.nowrap{white-space:nowrap}
     /* 특허명을 메인으로 넓게, 사사 정보는 div 너비로 제한 (table-layout 자동 유지) */
     #t2 td.fcell, #t2 th.fcell{vertical-align:top}
@@ -51,13 +99,19 @@
     #ta th, #ta td{padding:9px 12px}
     #ta td.pname{min-width:180px;max-width:260px}
     #ta td.namt-cell{max-width:150px;word-break:keep-all;overflow-wrap:break-word;line-height:1.5}
-    .stat-filter{display:inline-flex;gap:4px;margin-left:8px;vertical-align:middle}
-    .stat-btn{padding:5px 12px;border:1px solid #cbd5e1;background:#fff;font-size:12px;font-weight:600;cursor:pointer;border-radius:6px;color:#475569}
-    .stat-btn:hover{background:#f8fafc}
-    .stat-btn.active{background:#2563eb;color:#fff;border-color:#2563eb}
-    .core{background:#dbeafe;color:#1d4ed8}.app{background:#f1f5f9;color:#475569}
-    .warn{background:#fef3c7;color:#b45309}.danger{background:#fee2e2;color:#b91c1c}
-    .ok{background:#dcfce7;color:#15803d}
+    .stat-filter{display:inline-flex;gap:6px;margin-left:8px;vertical-align:middle}
+    .stat-btn{padding:8px 18px;border:1px solid var(--hairline);background:var(--canvas);
+              font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;
+              border-radius:9999px;color:var(--ink);letter-spacing:-0.014em;transition:all .15s}
+    .stat-btn:hover{border-color:var(--ink)}
+    .stat-btn:active{transform:scale(0.96)}
+    .stat-btn.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+    /* Pill colors — softer Apple palette */
+    .core{background:#e8f0fe;color:#0066cc}
+    .app{background:var(--parchment);color:var(--ink-muted)}
+    .warn{background:#fff4e5;color:#bf4800}
+    .danger{background:#ffe8e8;color:#c00f0c}
+    .ok{background:#e3f6e8;color:#0a7d2d}
     .bar-row{display:flex;align-items:center;gap:10px;margin:5px 0;font-size:12.5px}
     .bar-label{width:54px;color:#475569}.bar-track{flex:1;background:#f1f5f9;border-radius:6px;height:16px;overflow:hidden}
     .bar-fill{display:block;height:100%}.bar-val{width:120px;text-align:right;font-variant-numeric:tabular-nums}
@@ -76,8 +130,12 @@
     .mail-status:focus{outline:2px solid #2563eb;outline-offset:1px}
     .action{border-left:4px solid #ef4444;background:#fef2f2}
     .scroll{max-height:420px;overflow:auto;border:1px solid #e2e8f0;border-radius:8px}
-    input.search{width:240px;padding:6px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;margin-bottom:10px}
-    .muted{color:#94a3b8}
+    input.search{width:280px;padding:10px 18px;border:1px solid var(--hairline);
+                 border-radius:9999px;font-family:inherit;font-size:14px;
+                 letter-spacing:-0.016em;color:var(--ink);background:var(--canvas);
+                 margin-bottom:10px;outline:none;transition:border-color .15s}
+    input.search:focus{border-color:var(--ink)}
+    .muted{color:var(--ink-muted)}
     details{margin-top:6px}
     details summary{cursor:pointer;color:#2563eb;font-size:12px;font-weight:600;padding:4px 0;list-style:none}
     details summary::-webkit-details-marker{display:none}
@@ -85,12 +143,16 @@
     details[open] summary:before{content:'▼ '}
     .grid-cards-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     .num-tab{font-variant-numeric:tabular-nums;text-align:right}
-    .dl-btn{display:inline-block;padding:6px 12px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;margin-left:6px;color:#475569;vertical-align:middle}
-    .dl-btn:hover{background:#f8fafc;border-color:#64748b;color:#0f172a}
-    .dl-btn.excel{color:#15803d;border-color:#bbf7d0}
-    .dl-btn.excel:hover{background:#f0fdf4;border-color:#16a34a}
-    .dl-btn.pdf{color:#b91c1c;border-color:#fecaca}
-    .dl-btn.pdf:hover{background:#fef2f2;border-color:#dc2626}
+    /* 다운로드 버튼 — Action Blue pill (Apple primary 그래마) */
+    .dl-btn{display:inline-block;padding:10px 22px;border:none;border-radius:9999px;
+            background:var(--primary);font-family:inherit;font-size:14px;font-weight:400;
+            cursor:pointer;margin-left:8px;color:#fff;vertical-align:middle;
+            letter-spacing:-0.014em;transition:opacity .15s}
+    .dl-btn:hover{opacity:0.88}
+    .dl-btn:active{transform:scale(0.96)}
+    .dl-btn.pdf{background:transparent;color:var(--primary);
+                box-shadow:inset 0 0 0 1px var(--primary)}
+    .dl-btn.pdf:hover{background:rgba(0,102,204,0.06);opacity:1}
     .divider{margin:28px 0 12px;display:flex;align-items:center;gap:14px}
     .divider:before, .divider:after{content:'';flex:1;height:1px;background:linear-gradient(to right, transparent, #cbd5e1, transparent)}
     .divider h3{margin:0;font-size:14px;color:#475569;font-weight:700;padding:6px 14px;background:#fff;border:1px solid #e2e8f0;border-radius:99px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
