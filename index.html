@@ -17,7 +17,7 @@
     .wrap{max-width:1280px;margin:0 auto;padding:28px 24px}
     /* 브랜드 헤더 (로고) */
     .brand{display:flex;align-items:center;gap:14px;margin-bottom:18px}
-    .brand img{height:38px;width:auto;display:block}
+    .brand img{height:27px;width:auto;display:block}
     h1{font-family:'SF Pro Display',system-ui,-apple-system,sans-serif;
        font-size:40px;font-weight:600;letter-spacing:-0.022em;line-height:1.1;margin:0 0 6px}
     h2{font-family:'SF Pro Display',system-ui,-apple-system,sans-serif;
@@ -26,11 +26,10 @@
     a{color:var(--primary);text-decoration:none}
     a:hover{text-decoration:underline}
 
-    /* ── 탭 네비게이션 ── 미니멀 pill */
-    .tabs{display:flex;gap:2px;background:rgba(255,255,255,0.72);backdrop-filter:saturate(180%) blur(20px);
-          -webkit-backdrop-filter:saturate(180%) blur(20px);
+    /* ── 탭 네비게이션 ── 미니멀 pill (스크롤 고정 안 함) */
+    .tabs{display:flex;gap:2px;background:var(--canvas);
           border:1px solid var(--divider);border-radius:14px;padding:4px;margin-bottom:24px;
-          overflow-x:auto;position:sticky;top:12px;z-index:100}
+          overflow-x:auto}
     .tab{padding:9px 20px;border:none;background:transparent;border-radius:10px;
          font-family:inherit;font-size:14px;font-weight:500;color:var(--ink-muted);
          letter-spacing:-0.016em;cursor:pointer;white-space:nowrap;transition:all .2s}
